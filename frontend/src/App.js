@@ -1,42 +1,104 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
+// Replace with your Render backend URL
 const API = "https://hrms-lite-2-iege.onrender.com";
 
 function App() {
   const [employees, setEmployees] = useState([]);
-  const [form, setForm] = useState({
-    emp_id:"",
-    name:"",
-    email:"",
-    department:""
-  });
+  const [form, setForm] = useState({ emp_id:"", name:"", email:"", department:"" });
+  const [attendance, setAttendance] = useState({ emp_id:"", date:"", status:"Present" });
+  const [attendanceRecords, setAttendanceRecords] = useState([]);
 
   const fetchEmployees = async () => {
-    const res = await axios.get(`${API}/employees`);
-    setEmployees(res.data);
+    try {
+      const res = await axios.get(`${API}/employees`);
+      setEmployees(res.data);
+    } catch (err) {
+      console.error(err);
+      alert("Error fetching employees");
+    }
   };
 
   const addEmployee = async () => {
-    await axios.post(`${API}/employee`, form);
-    fetchEmployees();
+    try {
+      await axios.post(`${API}/employee`, form);
+      alert("Employee added");
+      setForm({ emp_id:"", name:"", email:"", department:"" });
+      fetchEmployees();
+    } catch (err) {
+      alert(err.response?.data?.detail || "Error adding employee");
+    }
   };
 
-  useEffect(()=>{ fetchEmployees(); },[]);
+  const deleteEmployee = async (emp_id) => {
+    try {
+      await axios.delete(`${API}/employee/${emp_id}`);
+      fetchEmployees();
+    } catch (err) {
+      alert(err.response?.data?.detail || "Error deleting employee");
+    }
+  };
+
+  const markAttendance = async () => {
+    try {
+      await axios.post(`${API}/attendance`, attendance);
+      alert("Attendance marked");
+      setAttendance({ emp_id:"", date:"", status:"Present" });
+      fetchAttendance(attendance.emp_id);
+    } catch (err) {
+      alert(err.response?.data?.detail || "Error marking attendance");
+    }
+  };
+
+  const fetchAttendance = async (emp_id) => {
+    try {
+      if(!emp_id) return;
+      const res = await axios.get(`${API}/attendance/${emp_id}`);
+      setAttendanceRecords(res.data);
+    } catch (err) {
+      alert(err.response?.data?.detail || "Error fetching attendance");
+    }
+  };
+
+  useEffect(()=>{ fetchEmployees(); }, []);
 
   return (
-    <div>
+    <div style={{ padding: "20px", fontFamily: "Arial" }}>
+      <h1>HRMS Lite</h1>
+
       <h2>Add Employee</h2>
-      <input placeholder="ID" onChange={e=>setForm({...form, emp_id:e.target.value})}/>
-      <input placeholder="Name" onChange={e=>setForm({...form, name:e.target.value})}/>
-      <input placeholder="Email" onChange={e=>setForm({...form, email:e.target.value})}/>
-      <input placeholder="Dept" onChange={e=>setForm({...form, department:e.target.value})}/>
-      <button onClick={addEmployee}>Add</button>
+      <input placeholder="ID" value={form.emp_id} onChange={e=>setForm({...form, emp_id:e.target.value})}/>
+      <input placeholder="Name" value={form.name} onChange={e=>setForm({...form, name:e.target.value})}/>
+      <input placeholder="Email" value={form.email} onChange={e=>setForm({...form, email:e.target.value})}/>
+      <input placeholder="Department" value={form.department} onChange={e=>setForm({...form, department:e.target.value})}/>
+      <button onClick={addEmployee}>Add Employee</button>
 
       <h2>Employees</h2>
       {employees.map(emp=>(
-        <div key={emp.emp_id}>
-          {emp.name} - {emp.department}
+        <div key={emp.emp_id} style={{ borderBottom: "1px solid #ccc", padding: "5px" }}>
+          {emp.name} ({emp.department}) - {emp.email}
+          <button onClick={()=>deleteEmployee(emp.emp_id)} style={{ marginLeft: "10px" }}>Delete</button>
+          <button onClick={()=>fetchAttendance(emp.emp_id)} style={{ marginLeft: "10px" }}>View Attendance</button>
+        </div>
+      ))}
+
+      <h2>Mark Attendance</h2>
+      <select value={attendance.emp_id} onChange={e=>setAttendance({...attendance, emp_id:e.target.value})}>
+        <option value="">Select Employee</option>
+        {employees.map(emp => <option key={emp.emp_id} value={emp.emp_id}>{emp.name}</option>)}
+      </select>
+      <input type="date" value={attendance.date} onChange={e=>setAttendance({...attendance, date:e.target.value})}/>
+      <select value={attendance.status} onChange={e=>setAttendance({...attendance, status:e.target.value})}>
+        <option value="Present">Present</option>
+        <option value="Absent">Absent</option>
+      </select>
+      <button onClick={markAttendance}>Mark Attendance</button>
+
+      <h2>Attendance Records</h2>
+      {attendanceRecords.map(att => (
+        <div key={att.id}>
+          {att.date} - {att.status}
         </div>
       ))}
     </div>
