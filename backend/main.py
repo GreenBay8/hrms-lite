@@ -10,7 +10,7 @@ app = FastAPI(title="HRMS Lite Backend")
 
 # ===== CORS =====
 origins = [
-    "https://YOUR_FRONTEND_URL.vercel.app",  # Replace with your Vercel frontend URL
+    "https://hrms-lite-alpha-lake.vercel.app/",  # Replace with your Vercel frontend URL
     "http://localhost:3000"
 ]
 
