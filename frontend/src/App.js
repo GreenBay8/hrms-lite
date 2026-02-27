@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-const API = "https://YOUR_RENDER_BACKEND_URL"; // replace with deployed backend
+const API = "https://hrms-lite-2-iege.onrender.com"; // replace with deployed backend
 
 function App() {
   const [employees, setEmployees] = useState([]);
