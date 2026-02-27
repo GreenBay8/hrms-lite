@@ -6,11 +6,11 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import datetime
 
-app = FastAPI(title="HRMS Lite")
+app = FastAPI(title="HRMS Lite Backend")
 
 # ===== CORS =====
 origins = [
-    "https://hrms-lite-alpha-lake.vercel.app/",  # replace with your frontend URL
+    "https://YOUR_FRONTEND_URL.vercel.app",  # Replace with your Vercel frontend URL
     "http://localhost:3000"
 ]
 
@@ -19,7 +19,7 @@ app.add_middleware(
     allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
 
 # ===== Database Setup =====
@@ -119,7 +119,7 @@ def get_attendance(emp_id: str):
     records = db.query(AttendanceDB).filter(AttendanceDB.emp_id == emp_id).all()
     return records
 
-# ===== Root Route =====
+# ===== Root =====
 @app.get("/")
 def root():
     return {"message": "HRMS Lite Backend Running"}
