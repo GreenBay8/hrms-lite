@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-// Replace with your Render backend URL
-const API = "https://hrms-lite-2-iege.onrender.com";
+const API = "https://hrms-lite-2-iege.onrender.com"; // Render backend URL
 
 function App() {
   const [employees, setEmployees] = useState([]);
@@ -16,12 +15,11 @@ function App() {
       const res = await axios.get(`${API}/employees`);
       setEmployees(res.data);
     } catch (err) {
-      console.error("Fetch error:", err);
+      console.error("Fetch error:", err.response || err);
       alert("Error fetching employees");
     }
   };
 
-  // Add employee
   const addEmployee = async () => {
     try {
       await axios.post(`${API}/employee`, form);
@@ -30,22 +28,20 @@ function App() {
       fetchEmployees();
     } catch (err) {
       console.error("Add error:", err.response?.data || err);
-      alert(err.response?.data?.detail || "Error adding employee");
+      alert(err.response?.data || "Error adding employee");
     }
   };
 
-  // Delete employee
   const deleteEmployee = async (emp_id) => {
     try {
       await axios.delete(`${API}/employee/${emp_id}`);
       fetchEmployees();
     } catch (err) {
       console.error("Delete error:", err.response?.data || err);
-      alert(err.response?.data?.detail || "Error deleting employee");
+      alert(err.response?.data || "Error deleting employee");
     }
   };
 
-  // Mark attendance
   const markAttendance = async () => {
     try {
       await axios.post(`${API}/attendance`, attendance);
@@ -54,11 +50,10 @@ function App() {
       fetchAttendance(attendance.emp_id);
     } catch (err) {
       console.error("Attendance error:", err.response?.data || err);
-      alert(err.response?.data?.detail || "Error marking attendance");
+      alert(err.response?.data || "Error marking attendance");
     }
   };
 
-  // Fetch attendance for a selected employee
   const fetchAttendance = async (emp_id) => {
     try {
       if(!emp_id) return;
@@ -66,7 +61,7 @@ function App() {
       setAttendanceRecords(res.data);
     } catch (err) {
       console.error("Attendance fetch error:", err.response?.data || err);
-      alert(err.response?.data?.detail || "Error fetching attendance");
+      alert(err.response?.data || "Error fetching attendance");
     }
   };
 
