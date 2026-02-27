@@ -10,16 +10,18 @@ function App() {
   const [attendance, setAttendance] = useState({ emp_id:"", date:"", status:"Present" });
   const [attendanceRecords, setAttendanceRecords] = useState([]);
 
+  // Fetch all employees
   const fetchEmployees = async () => {
     try {
       const res = await axios.get(`${API}/employees`);
       setEmployees(res.data);
     } catch (err) {
-      console.error(err);
+      console.error("Fetch error:", err);
       alert("Error fetching employees");
     }
   };
 
+  // Add employee
   const addEmployee = async () => {
     try {
       await axios.post(`${API}/employee`, form);
@@ -27,19 +29,23 @@ function App() {
       setForm({ emp_id:"", name:"", email:"", department:"" });
       fetchEmployees();
     } catch (err) {
+      console.error("Add error:", err.response?.data || err);
       alert(err.response?.data?.detail || "Error adding employee");
     }
   };
 
+  // Delete employee
   const deleteEmployee = async (emp_id) => {
     try {
       await axios.delete(`${API}/employee/${emp_id}`);
       fetchEmployees();
     } catch (err) {
+      console.error("Delete error:", err.response?.data || err);
       alert(err.response?.data?.detail || "Error deleting employee");
     }
   };
 
+  // Mark attendance
   const markAttendance = async () => {
     try {
       await axios.post(`${API}/attendance`, attendance);
@@ -47,16 +53,19 @@ function App() {
       setAttendance({ emp_id:"", date:"", status:"Present" });
       fetchAttendance(attendance.emp_id);
     } catch (err) {
+      console.error("Attendance error:", err.response?.data || err);
       alert(err.response?.data?.detail || "Error marking attendance");
     }
   };
 
+  // Fetch attendance for a selected employee
   const fetchAttendance = async (emp_id) => {
     try {
       if(!emp_id) return;
       const res = await axios.get(`${API}/attendance/${emp_id}`);
       setAttendanceRecords(res.data);
     } catch (err) {
+      console.error("Attendance fetch error:", err.response?.data || err);
       alert(err.response?.data?.detail || "Error fetching attendance");
     }
   };
@@ -67,6 +76,7 @@ function App() {
     <div style={{ padding: "20px", fontFamily: "Arial" }}>
       <h1>HRMS Lite</h1>
 
+      {/* Add Employee */}
       <h2>Add Employee</h2>
       <input placeholder="ID" value={form.emp_id} onChange={e=>setForm({...form, emp_id:e.target.value})}/>
       <input placeholder="Name" value={form.name} onChange={e=>setForm({...form, name:e.target.value})}/>
@@ -74,6 +84,7 @@ function App() {
       <input placeholder="Department" value={form.department} onChange={e=>setForm({...form, department:e.target.value})}/>
       <button onClick={addEmployee}>Add Employee</button>
 
+      {/* Employee List */}
       <h2>Employees</h2>
       {employees.map(emp=>(
         <div key={emp.emp_id} style={{ borderBottom: "1px solid #ccc", padding: "5px" }}>
@@ -83,6 +94,7 @@ function App() {
         </div>
       ))}
 
+      {/* Mark Attendance */}
       <h2>Mark Attendance</h2>
       <select value={attendance.emp_id} onChange={e=>setAttendance({...attendance, emp_id:e.target.value})}>
         <option value="">Select Employee</option>
@@ -95,6 +107,7 @@ function App() {
       </select>
       <button onClick={markAttendance}>Mark Attendance</button>
 
+      {/* Attendance Records */}
       <h2>Attendance Records</h2>
       {attendanceRecords.map(att => (
         <div key={att.id}>
