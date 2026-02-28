@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, validator
-from sqlalchemy import create_engine, Column, String, Date, func, case
+from sqlalchemy import create_engine, Column, String, Date
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import datetime
@@ -10,7 +10,7 @@ import os
 
 app = FastAPI(title="HRMS Lite Backend")
 
-
+# Allow your frontend URL
 origins = ["https://hrms-lite-alpha-lake.vercel.app"]
 app.add_middleware(
     CORSMiddleware,
@@ -25,6 +25,7 @@ engine = create_engine(f"sqlite:///{DB_PATH}", connect_args={"check_same_thread"
 SessionLocal = sessionmaker(bind=engine)
 Base = declarative_base()
 
+# ---------------- Database Models ----------------
 class EmployeeDB(Base):
     __tablename__ = "employees"
     emp_id = Column(String, primary_key=True)
@@ -41,7 +42,7 @@ class AttendanceDB(Base):
 
 Base.metadata.create_all(bind=engine)
 
-# Pydantic models
+# ---------------- Pydantic Models ----------------
 class Employee(BaseModel):
     emp_id: str
     name: str
@@ -133,6 +134,7 @@ def filter_attendance(emp_id: str, start_date: str = None, end_date: str = None)
         query = query.filter(AttendanceDB.date <= end_dt)
     return query.all()
 
+# ---------------- Dashboard Summary ----------------
 @app.get("/attendance/summary")
 def attendance_summary():
     db = SessionLocal()
@@ -149,5 +151,3 @@ def attendance_summary():
             "present_days": present
         })
     return result
-
-
