@@ -149,3 +149,5 @@ def attendance_summary():
             "present_days": present
         })
     return result
+
+
