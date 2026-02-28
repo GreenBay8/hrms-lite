@@ -95,7 +95,7 @@ def delete_employee(emp_id: str):
     emp = db.query(EmployeeDB).filter(EmployeeDB.emp_id == emp_id).first()
     if not emp:
         raise HTTPException(404, detail="Employee not found")
-    # Delete all attendance records for this employee
+    # Delete all attendance for this employee
     db.query(AttendanceDB).filter(AttendanceDB.emp_id == emp_id).delete()
     db.delete(emp)
     db.commit()
