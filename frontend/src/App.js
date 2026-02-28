@@ -20,44 +20,13 @@ function App() {
 
   useEffect(() => { fetchEmployees(); fetchSummary(); }, []);
 
-  const fetchEmployees = async () => {
-    try { const res = await axios.get(`${API}/employees`); setEmployees(res.data); } 
-    catch (err) { alert("Error fetching employees"); }
-  };
-
-  const fetchSummary = async () => {
-    try { const res = await axios.get(`${API}/attendance/summary`); setSummary(res.data); } 
-    catch (err) { console.error(err); }
-  };
-
-  const addEmployee = async () => {
-    if (!form.emp_id || !form.name || !form.email || !form.department) return alert("All fields required");
-    try { await axios.post(`${API}/employee`, form); alert("Employee added"); setForm({ emp_id: "", name: "", email: "", department: "" }); fetchEmployees(); fetchSummary(); } 
-    catch (err) { alert(err.response?.data?.detail || "Error adding employee"); }
-  };
-
-  const deleteEmployee = async (emp_id) => { 
-    if(!window.confirm("Are you sure to delete this employee? All their attendance will be deleted.")) return;
-    try { await axios.delete(`${API}/employee/${emp_id}`); fetchEmployees(); fetchSummary(); setAttendanceRecords([]); } 
-    catch (err) { alert(err.response?.data?.detail || "Error deleting employee"); } 
-  };
-
-  const markAttendance = async () => {
-    if (!attendance.emp_id || !attendance.date) return alert("Select employee and date");
-    try { await axios.post(`${API}/attendance`, attendance); alert("Attendance marked"); setAttendance({ emp_id: "", date: "", status: "Present" }); fetchAttendance(attendance.emp_id); fetchSummary(); } 
-    catch (err) { alert(err.response?.data?.detail || "Error marking attendance"); }
-  };
-
+  const fetchEmployees = async () => { try { const res = await axios.get(`${API}/employees`); setEmployees(res.data); } catch (err) { alert("Error fetching employees"); } };
+  const fetchSummary = async () => { try { const res = await axios.get(`${API}/attendance/summary`); setSummary(res.data); } catch (err) { console.error(err); } };
+  const addEmployee = async () => { if (!form.emp_id || !form.name || !form.email || !form.department) return alert("All fields required"); try { await axios.post(`${API}/employee`, form); alert("Employee added"); setForm({ emp_id: "", name: "", email: "", department: "" }); fetchEmployees(); fetchSummary(); } catch (err) { alert(err.response?.data?.detail || "Error adding employee"); } };
+  const deleteEmployee = async (emp_id) => { if(!window.confirm("Are you sure to delete this employee? All their attendance will be deleted.")) return; try { await axios.delete(`${API}/employee/${emp_id}`); fetchEmployees(); fetchSummary(); setAttendanceRecords([]); } catch (err) { alert(err.response?.data?.detail || "Error deleting employee"); } };
+  const markAttendance = async () => { if (!attendance.emp_id || !attendance.date) return alert("Select employee and date"); try { await axios.post(`${API}/attendance`, attendance); alert("Attendance marked"); setAttendance({ emp_id: "", date: "", status: "Present" }); fetchAttendance(attendance.emp_id); fetchSummary(); } catch (err) { alert(err.response?.data?.detail || "Error marking attendance"); } };
   const fetchAttendance = async (emp_id) => { try { const res = await axios.get(`${API}/attendance/${emp_id}`); setAttendanceRecords(res.data); } catch (err) { alert(err.response?.data?.detail || "Error fetching attendance"); } };
-
-  const filterAttendance = async () => {
-    if (!filter.emp_id) return alert("Select an employee");
-    try {
-      const res = await axios.get(`${API}/attendance/${filter.emp_id}/filter`, { params: { start_date: filter.start_date || undefined, end_date: filter.end_date || undefined }});
-      setAttendanceRecords(res.data);
-      if(res.data.length===0) alert("No records found");
-    } catch (err) { alert(err.response?.data?.detail || "Error filtering attendance"); }
-  };
+  const filterAttendance = async () => { if (!filter.emp_id) return alert("Select an employee"); try { const res = await axios.get(`${API}/attendance/${filter.emp_id}/filter`, { params: { start_date: filter.start_date || undefined, end_date: filter.end_date || undefined }}); setAttendanceRecords(res.data); if(res.data.length===0) alert("No records found"); } catch (err) { alert(err.response?.data?.detail || "Error filtering attendance"); } };
 
   return (
     <div style={{ padding:"30px", fontFamily:"Arial", maxWidth:"1000px", margin:"auto" }}>
