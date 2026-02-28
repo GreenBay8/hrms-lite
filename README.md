@@ -69,6 +69,8 @@ npm start
 
 5.The frontend will be available at http://localhost:3000.
 
+
+
 Assumptions & Limitations
 
 Single Admin: No authentication implemented.
