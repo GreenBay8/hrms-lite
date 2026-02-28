@@ -10,7 +10,7 @@ import os
 
 app = FastAPI(title="HRMS Lite Backend")
 
-# Allow your frontend URL
+# Replace with your frontend URL
 origins = ["https://hrms-lite-alpha-lake.vercel.app"]
 app.add_middleware(
     CORSMiddleware,
@@ -20,12 +20,12 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+# Database setup
 DB_PATH = os.path.join(os.path.dirname(__file__), "hrms.db")
 engine = create_engine(f"sqlite:///{DB_PATH}", connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(bind=engine)
 Base = declarative_base()
 
-# ---------------- Database Models ----------------
 class EmployeeDB(Base):
     __tablename__ = "employees"
     emp_id = Column(String, primary_key=True)
@@ -42,7 +42,7 @@ class AttendanceDB(Base):
 
 Base.metadata.create_all(bind=engine)
 
-# ---------------- Pydantic Models ----------------
+# Pydantic models
 class Employee(BaseModel):
     emp_id: str
     name: str
