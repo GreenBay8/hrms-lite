@@ -20,7 +20,6 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-# Database setup
 DB_PATH = os.path.join(os.path.dirname(__file__), "hrms.db")
 engine = create_engine(f"sqlite:///{DB_PATH}", connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(bind=engine)
@@ -95,7 +94,6 @@ def delete_employee(emp_id: str):
     emp = db.query(EmployeeDB).filter(EmployeeDB.emp_id == emp_id).first()
     if not emp:
         raise HTTPException(404, detail="Employee not found")
-    # Delete all attendance for this employee
     db.query(AttendanceDB).filter(AttendanceDB.emp_id == emp_id).delete()
     db.delete(emp)
     db.commit()
@@ -138,20 +136,16 @@ def filter_attendance(emp_id: str, start_date: str = None, end_date: str = None)
 @app.get("/attendance/summary")
 def attendance_summary():
     db = SessionLocal()
-    summary = db.query(
-        AttendanceDB.emp_id,
-        func.count(AttendanceDB.id).label("total_days"),
-        func.sum(case([(AttendanceDB.status=="Present",1)], else_=0)).label("present_days")
-    ).group_by(AttendanceDB.emp_id).all()
-
+    employees = db.query(EmployeeDB).all()
     result = []
-    for row in summary:
-        emp = db.query(EmployeeDB).filter(EmployeeDB.emp_id == row.emp_id).first()
+    for emp in employees:
+        total = db.query(AttendanceDB).filter(AttendanceDB.emp_id == emp.emp_id).count()
+        present = db.query(AttendanceDB).filter(AttendanceDB.emp_id == emp.emp_id, AttendanceDB.status=="Present").count()
         result.append({
-            "emp_id": row.emp_id,
-            "name": emp.name if emp else "Unknown",
-            "department": emp.department if emp else "",
-            "total_days": int(row.total_days),
-            "present_days": int(row.present_days)
+            "emp_id": emp.emp_id,
+            "name": emp.name,
+            "department": emp.department,
+            "total_days": total,
+            "present_days": present
         })
     return result
