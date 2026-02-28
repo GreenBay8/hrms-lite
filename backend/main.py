@@ -72,7 +72,7 @@ class Attendance(BaseModel):
             raise ValueError("Status must be Present/Absent")
         return v
 
-# Employee APIs
+# ---------------- Employee APIs ----------------
 @app.post("/employee")
 def add_employee(emp: Employee):
     db = SessionLocal()
@@ -95,11 +95,13 @@ def delete_employee(emp_id: str):
     emp = db.query(EmployeeDB).filter(EmployeeDB.emp_id == emp_id).first()
     if not emp:
         raise HTTPException(404, detail="Employee not found")
+    # Delete all attendance records for this employee
+    db.query(AttendanceDB).filter(AttendanceDB.emp_id == emp_id).delete()
     db.delete(emp)
     db.commit()
-    return {"message": "Deleted successfully"}
+    return {"message": "Employee and attendance deleted successfully"}
 
-# Attendance APIs
+# ---------------- Attendance APIs ----------------
 @app.post("/attendance")
 def mark_attendance(att: Attendance):
     db = SessionLocal()
@@ -126,17 +128,11 @@ def filter_attendance(emp_id: str, start_date: str = None, end_date: str = None)
         raise HTTPException(404, detail="Employee not found")
     query = db.query(AttendanceDB).filter(AttendanceDB.emp_id == emp_id)
     if start_date:
-        try:
-            start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
-            query = query.filter(AttendanceDB.date >= start_dt)
-        except ValueError:
-            raise HTTPException(400, detail="Invalid start_date format. Use YYYY-MM-DD")
+        start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%d").date()
+        query = query.filter(AttendanceDB.date >= start_dt)
     if end_date:
-        try:
-            end_dt = datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
-            query = query.filter(AttendanceDB.date <= end_dt)
-        except ValueError:
-            raise HTTPException(400, detail="Invalid end_date format. Use YYYY-MM-DD")
+        end_dt = datetime.datetime.strptime(end_date, "%Y-%m-%d").date()
+        query = query.filter(AttendanceDB.date <= end_dt)
     return query.all()
 
 @app.get("/attendance/summary")
