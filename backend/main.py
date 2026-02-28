@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, validator
 from sqlalchemy import create_engine, Column, String, Date, func, case
@@ -10,7 +10,7 @@ import os
 
 app = FastAPI(title="HRMS Lite Backend")
 
-# CORS -
+
 origins = ["https://hrms-lite-alpha-lake.vercel.app"]
 app.add_middleware(
     CORSMiddleware,
@@ -144,17 +144,18 @@ def attendance_summary():
     db = SessionLocal()
     summary = db.query(
         AttendanceDB.emp_id,
-        func.count().label("total_days"),
+        func.count(AttendanceDB.id).label("total_days"),
         func.sum(case([(AttendanceDB.status=="Present",1)], else_=0)).label("present_days")
     ).group_by(AttendanceDB.emp_id).all()
-    result=[]
+
+    result = []
     for row in summary:
         emp = db.query(EmployeeDB).filter(EmployeeDB.emp_id == row.emp_id).first()
         result.append({
             "emp_id": row.emp_id,
-            "name": emp.name if emp else "",
+            "name": emp.name if emp else "Unknown",
             "department": emp.department if emp else "",
-            "total_days": row.total_days,
-            "present_days": row.present_days
+            "total_days": int(row.total_days),
+            "present_days": int(row.present_days)
         })
     return result
