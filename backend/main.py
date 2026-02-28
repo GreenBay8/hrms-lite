@@ -10,7 +10,6 @@ import os
 
 app = FastAPI(title="HRMS Lite Backend")
 
-# Replace with your frontend URL
 origins = ["https://hrms-lite-alpha-lake.vercel.app"]
 app.add_middleware(
     CORSMiddleware,
