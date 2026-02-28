@@ -11,7 +11,6 @@ function App() {
   const [filter, setFilter] = useState({ emp_id: "", start_date: "", end_date: "" });
   const [summary, setSummary] = useState([]);
 
-  // Styles
   const inputStyle = { padding: "8px", margin: "5px", borderRadius: "5px", border: "1px solid #ccc" };
   const buttonStyle = { padding: "8px 15px", margin: "5px", borderRadius: "5px", border: "none", cursor: "pointer", backgroundColor: "#4CAF50", color: "white" };
   const cardStyle = { border: "1px solid #ccc", borderRadius: "8px", padding: "20px", margin: "15px 0", boxShadow: "0 2px 5px rgba(0,0,0,0.1)", backgroundColor: "#fdfdfd" };
@@ -37,7 +36,11 @@ function App() {
     catch (err) { alert(err.response?.data?.detail || "Error adding employee"); }
   };
 
-  const deleteEmployee = async (emp_id) => { try { await axios.delete(`${API}/employee/${emp_id}`); fetchEmployees(); fetchSummary(); setAttendanceRecords([]); } catch (err) { alert(err.response?.data?.detail || "Error deleting employee"); } };
+  const deleteEmployee = async (emp_id) => { 
+    if(!window.confirm("Are you sure to delete this employee? All their attendance will be deleted.")) return;
+    try { await axios.delete(`${API}/employee/${emp_id}`); fetchEmployees(); fetchSummary(); setAttendanceRecords([]); } 
+    catch (err) { alert(err.response?.data?.detail || "Error deleting employee"); } 
+  };
 
   const markAttendance = async () => {
     if (!attendance.emp_id || !attendance.date) return alert("Select employee and date");
@@ -51,8 +54,8 @@ function App() {
     if (!filter.emp_id) return alert("Select an employee");
     try {
       const res = await axios.get(`${API}/attendance/${filter.emp_id}/filter`, { params: { start_date: filter.start_date || undefined, end_date: filter.end_date || undefined }});
-      if (res.data.length===0) alert("No records found");
       setAttendanceRecords(res.data);
+      if(res.data.length===0) alert("No records found");
     } catch (err) { alert(err.response?.data?.detail || "Error filtering attendance"); }
   };
 
