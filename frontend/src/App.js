@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 const API = "https://hrms-lite-2-iege.onrender.com"; 
+
 function App() {
   const [employees, setEmployees] = useState([]);
   const [form, setForm] = useState({ emp_id: "", name: "", email: "", department: "" });
@@ -11,59 +12,46 @@ function App() {
   const [summary, setSummary] = useState([]);
 
   // Styles
-  const inputStyle = { padding: "8px", margin: "5px 5px 5px 0", borderRadius: "5px", border: "1px solid #ccc" };
+  const inputStyle = { padding: "8px", margin: "5px", borderRadius: "5px", border: "1px solid #ccc" };
   const buttonStyle = { padding: "8px 15px", margin: "5px", borderRadius: "5px", border: "none", cursor: "pointer", backgroundColor: "#4CAF50", color: "white" };
   const cardStyle = { border: "1px solid #ccc", borderRadius: "8px", padding: "20px", margin: "15px 0", boxShadow: "0 2px 5px rgba(0,0,0,0.1)", backgroundColor: "#fdfdfd" };
   const tableStyle = { width: "100%", borderCollapse: "collapse" };
   const thStyle = { backgroundColor: "#4CAF50", color: "white", padding: "8px" };
   const tdStyle = { textAlign: "center", borderBottom: "1px solid #ddd", padding: "8px" };
 
-  useEffect(() => {
-    fetchEmployees();
-    fetchSummary();
-  }, []);
+  useEffect(() => { fetchEmployees(); fetchSummary(); }, []);
 
   const fetchEmployees = async () => {
     try { const res = await axios.get(`${API}/employees`); setEmployees(res.data); } 
-    catch (err) { console.error(err.response?.data || err); alert("Error fetching employees"); }
+    catch (err) { alert("Error fetching employees"); }
   };
 
   const fetchSummary = async () => {
     try { const res = await axios.get(`${API}/attendance/summary`); setSummary(res.data); } 
-    catch (err) { console.error(err.response?.data || err); }
+    catch (err) { console.error(err); }
   };
 
   const addEmployee = async () => {
     if (!form.emp_id || !form.name || !form.email || !form.department) return alert("All fields required");
-    try {
-      await axios.post(`${API}/employee`, form);
-      alert("Employee added successfully");
-      setForm({ emp_id: "", name: "", email: "", department: "" });
-      fetchEmployees(); fetchSummary();
-    } catch (err) { alert(err.response?.data?.detail || "Error adding employee"); }
+    try { await axios.post(`${API}/employee`, form); alert("Employee added"); setForm({ emp_id: "", name: "", email: "", department: "" }); fetchEmployees(); fetchSummary(); } 
+    catch (err) { alert(err.response?.data?.detail || "Error adding employee"); }
   };
 
-  const deleteEmployee = async (emp_id) => {
-    try { await axios.delete(`${API}/employee/${emp_id}`); fetchEmployees(); fetchSummary(); setAttendanceRecords([]); } 
-    catch (err) { alert(err.response?.data?.detail || "Error deleting employee"); }
-  };
+  const deleteEmployee = async (emp_id) => { try { await axios.delete(`${API}/employee/${emp_id}`); fetchEmployees(); fetchSummary(); setAttendanceRecords([]); } catch (err) { alert(err.response?.data?.detail || "Error deleting employee"); } };
 
   const markAttendance = async () => {
     if (!attendance.emp_id || !attendance.date) return alert("Select employee and date");
-    try { await axios.post(`${API}/attendance`, attendance); alert("Attendance marked"); setAttendance({ emp_id:"", date:"", status:"Present" }); fetchAttendance(attendance.emp_id); fetchSummary(); } 
+    try { await axios.post(`${API}/attendance`, attendance); alert("Attendance marked"); setAttendance({ emp_id: "", date: "", status: "Present" }); fetchAttendance(attendance.emp_id); fetchSummary(); } 
     catch (err) { alert(err.response?.data?.detail || "Error marking attendance"); }
   };
 
-  const fetchAttendance = async (emp_id) => {
-    try { const res = await axios.get(`${API}/attendance/${emp_id}`); setAttendanceRecords(res.data); } 
-    catch (err) { alert(err.response?.data?.detail || "Error fetching attendance"); }
-  };
+  const fetchAttendance = async (emp_id) => { try { const res = await axios.get(`${API}/attendance/${emp_id}`); setAttendanceRecords(res.data); } catch (err) { alert(err.response?.data?.detail || "Error fetching attendance"); } };
 
   const filterAttendance = async () => {
     if (!filter.emp_id) return alert("Select an employee");
     try {
       const res = await axios.get(`${API}/attendance/${filter.emp_id}/filter`, { params: { start_date: filter.start_date || undefined, end_date: filter.end_date || undefined }});
-      if (res.data.length===0) alert("No records found for this date range");
+      if (res.data.length===0) alert("No records found");
       setAttendanceRecords(res.data);
     } catch (err) { alert(err.response?.data?.detail || "Error filtering attendance"); }
   };
@@ -86,9 +74,7 @@ function App() {
       <div style={cardStyle}>
         <h2>Employees</h2>
         <table style={tableStyle}>
-          <thead>
-            <tr><th style={thStyle}>Name</th><th style={thStyle}>Email</th><th style={thStyle}>Department</th><th style={thStyle}>Actions</th></tr>
-          </thead>
+          <thead><tr><th style={thStyle}>Name</th><th style={thStyle}>Email</th><th style={thStyle}>Department</th><th style={thStyle}>Actions</th></tr></thead>
           <tbody>
             {employees.map(emp => (
               <tr key={emp.emp_id}>
@@ -149,19 +135,21 @@ function App() {
       {/* Dashboard Summary */}
       <div style={cardStyle}>
         <h2>Employee Attendance Summary</h2>
-        <table style={tableStyle}>
-          <thead><tr><th style={thStyle}>Name</th><th style={thStyle}>Department</th><th style={thStyle}>Total Days</th><th style={thStyle}>Present Days</th></tr></thead>
-          <tbody>
-            {summary.map(emp=>(
-              <tr key={emp.emp_id}>
-                <td style={tdStyle}>{emp.name}</td>
-                <td style={tdStyle}>{emp.department}</td>
-                <td style={tdStyle}>{emp.total_days}</td>
-                <td style={{...tdStyle,color:"green",fontWeight:"bold"}}>{emp.present_days}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {summary.length===0?<p>No attendance records yet</p>:
+          <table style={tableStyle}>
+            <thead><tr><th style={thStyle}>Name</th><th style={thStyle}>Department</th><th style={thStyle}>Total Days</th><th style={thStyle}>Present Days</th></tr></thead>
+            <tbody>
+              {summary.map(emp=>(
+                <tr key={emp.emp_id}>
+                  <td style={tdStyle}>{emp.name}</td>
+                  <td style={tdStyle}>{emp.department}</td>
+                  <td style={tdStyle}>{emp.total_days}</td>
+                  <td style={{...tdStyle,color:"green",fontWeight:"bold"}}>{emp.present_days}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        }
       </div>
     </div>
   );
